@@ -19,8 +19,8 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/statusi/mautic-plugin-statusi/issues",
-        "source": "https://github.com/statusi/mautic-plugin-statusi"
+        "issues": "https://github.com/jaldip/mautic-plugin-statusi/issues",
+        "source": "https://github.com/jaldip/mautic-plugin-statusi"
     },
     "require": {
         "php": ">=8.2",
