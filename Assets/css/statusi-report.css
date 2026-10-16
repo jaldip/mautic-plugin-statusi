@@ -1,0 +1,48 @@
+/* Statusi > report page (Assets/js/statusi-report.js) */
+#statusiReport .statusi-report-scroll {
+    max-height: 70vh;
+    overflow: auto;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--border-radius-md);
+}
+
+#statusiReport .statusi-report-table {
+    margin-bottom: 0;
+}
+
+#statusiReport .statusi-report-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+#statusiReport .statusi-report-table th {
+    background: var(--layer-01, var(--background));
+    white-space: nowrap;
+}
+
+#statusiReport .statusi-report-table td {
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#statusiReport .statusi-report-row-label {
+    font-weight: 500;
+}
+
+#statusiReport .statusi-report-info {
+    margin-left: 4px;
+    cursor: help;
+}
+
+#statusiReport .statusi-report-breadcrumbs:empty {
+    display: none;
+}
+
+.statusi-report-filter {
+    display: inline-block;
+    margin: 0 4px 4px 0;
+    white-space: normal;
+}

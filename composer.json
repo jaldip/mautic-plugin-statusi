@@ -1,0 +1,32 @@
+{
+    "name": "statusi/mautic-plugin-statusi",
+    "description": "Connect Mautic to Statusi: Statusi reports inside Mautic, and a daily read-only sync of Mautic contacts and email activity to Statusi.",
+    "type": "mautic-plugin",
+    "license": "GPL-3.0-or-later",
+    "keywords": [
+        "mautic",
+        "plugin",
+        "integration",
+        "statusi",
+        "reporting",
+        "email analytics"
+    ],
+    "homepage": "https://statusi.io",
+    "authors": [
+        {
+            "name": "Statusi",
+            "homepage": "https://statusi.io"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/statusi/mautic-plugin-statusi/issues",
+        "source": "https://github.com/statusi/mautic-plugin-statusi"
+    },
+    "require": {
+        "php": ">=8.2",
+        "mautic/core-lib": "^7.0"
+    },
+    "extra": {
+        "install-directory-name": "MauticStatusiBundle"
+    }
+}

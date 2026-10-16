@@ -1,0 +1,232 @@
+{
+    "data": [
+        {
+            "contact": {
+                "id": 55,
+                "email": "jane@example.com",
+                "firstName": "Jane",
+                "lastName": "Doe",
+                "company": "Example Inc",
+                "phone": "+91 20 5555 0101",
+                "mobile": null,
+                "country": "India",
+                "region": "Maharashtra",
+                "city": "Mumbai",
+                "owner": {
+                    "id": 1,
+                    "name": "Asha Patel"
+                },
+                "stage": {
+                    "id": 2,
+                    "name": "Lead"
+                },
+                "dateAdded": "2026-09-20T09:00:00+00:00",
+                "dateModified": "2026-09-20T09:00:00+00:00",
+                "dateIdentified": "2026-09-20T09:00:00+00:00",
+                "lastActive": "2026-10-09T05:16:03+00:00",
+                "fields": {
+                    "email": "jane@example.com",
+                    "firstname": "Jane",
+                    "lastname": "Doe",
+                    "company": "Example Inc",
+                    "phone": "+91 20 5555 0101",
+                    "city": "Mumbai",
+                    "state": "Maharashtra",
+                    "country": "India",
+                    "points": 15,
+                    "loyalty_tier": "gold"
+                }
+            },
+            "changeInfo": {
+                "changeType": "updated",
+                "createdInRange": false,
+                "updatedInRange": true,
+                "createdAt": null,
+                "lastUpdatedAt": "2026-10-08T10:30:00+00:00",
+                "matchedTimestamp": "2026-10-08T10:30:00+00:00",
+                "updateEvidence": [
+                    "auditLog"
+                ]
+            },
+            "history": {
+                "totalEntries": 2,
+                "entriesReturned": 2,
+                "truncated": false,
+                "entries": [
+                    {
+                        "id": 502,
+                        "action": "update",
+                        "timestamp": "2026-10-08T10:30:00+00:00",
+                        "actor": {
+                            "userId": 1,
+                            "userName": "Asha Patel"
+                        },
+                        "source": {
+                            "manipulatedBy": null,
+                            "manipulatorKey": null
+                        },
+                        "changes": [
+                            {
+                                "field": "loyalty_tier",
+                                "oldValue": "silver",
+                                "newValue": "gold"
+                            },
+                            {
+                                "field": "points",
+                                "oldValue": 10,
+                                "newValue": 15
+                            }
+                        ]
+                    },
+                    {
+                        "id": 501,
+                        "action": "update",
+                        "timestamp": "2026-10-05T14:02:11+00:00",
+                        "actor": {
+                            "userId": null,
+                            "userName": "System"
+                        },
+                        "source": {
+                            "manipulatedBy": "form",
+                            "manipulatorKey": "form:7"
+                        },
+                        "changes": [
+                            {
+                                "field": "city",
+                                "oldValue": "Pune",
+                                "newValue": "Mumbai"
+                            },
+                            {
+                                "field": "state",
+                                "oldValue": null,
+                                "newValue": "Maharashtra"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "contact": {
+                "id": 61,
+                "email": "raj@example.com",
+                "firstName": "Raj",
+                "lastName": "Shah",
+                "company": null,
+                "phone": null,
+                "mobile": null,
+                "country": "India",
+                "region": null,
+                "city": null,
+                "owner": null,
+                "stage": null,
+                "dateAdded": "2026-10-07T16:45:00+00:00",
+                "dateModified": "2026-10-07T16:45:00+00:00",
+                "dateIdentified": null,
+                "lastActive": null,
+                "fields": {
+                    "email": "raj@example.com",
+                    "firstname": "Raj",
+                    "lastname": "Shah",
+                    "company": null,
+                    "phone": null,
+                    "city": null,
+                    "state": null,
+                    "country": "India",
+                    "points": 0,
+                    "loyalty_tier": null
+                }
+            },
+            "changeInfo": {
+                "changeType": "created",
+                "createdInRange": true,
+                "updatedInRange": false,
+                "createdAt": "2026-10-07T16:45:00+00:00",
+                "lastUpdatedAt": null,
+                "matchedTimestamp": "2026-10-07T16:45:00+00:00",
+                "updateEvidence": []
+            },
+            "history": {
+                "totalEntries": 1,
+                "entriesReturned": 1,
+                "truncated": false,
+                "entries": [
+                    {
+                        "id": 503,
+                        "action": "create",
+                        "timestamp": "2026-10-07T16:45:00+00:00",
+                        "actor": {
+                            "userId": null,
+                            "userName": "System"
+                        },
+                        "source": {
+                            "manipulatedBy": null,
+                            "manipulatorKey": null
+                        },
+                        "changes": [
+                            {
+                                "field": "firstname",
+                                "oldValue": null,
+                                "newValue": "Raj"
+                            },
+                            {
+                                "field": "lastname",
+                                "oldValue": null,
+                                "newValue": "Shah"
+                            },
+                            {
+                                "field": "email",
+                                "oldValue": null,
+                                "newValue": "raj@example.com"
+                            },
+                            {
+                                "field": "country",
+                                "oldValue": null,
+                                "newValue": "India"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    ],
+    "pagination": {
+        "page": 1,
+        "limit": 100,
+        "totalContacts": 2,
+        "totalPages": 1,
+        "hasNextPage": false,
+        "hasPreviousPage": false
+    },
+    "filters": {
+        "dateFrom": "2026-10-01T00:00:00+00:00",
+        "dateTo": "2026-10-09T23:59:59+00:00",
+        "changeType": "all",
+        "contactId": null,
+        "search": null,
+        "fields": [
+            "email",
+            "firstname",
+            "lastname",
+            "company",
+            "phone",
+            "city",
+            "state",
+            "country",
+            "points",
+            "loyalty_tier"
+        ],
+        "order": "DESC",
+        "sortBy": "lastChange",
+        "includeHistory": true,
+        "historyLimit": 50
+    },
+    "meta": {
+        "timezone": "UTC",
+        "attributes": "current values",
+        "history": "audit log entries (create/update) inside the range",
+        "generatedAt": "2026-10-12T06:55:23+00:00",
+        "queryCount": 5,
+        "dbTimeMs": 55
+    }
+}

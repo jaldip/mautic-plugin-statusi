@@ -1,0 +1,62 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusi{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.menu.index'|trans }}{% endblock %}
+
+{% block content %}
+<div class="pa-md">
+    {% if accountName is not null %}
+        <div class="alert alert-info">
+            <i class="ri-checkbox-circle-fill"></i>
+            {{ 'mautic.statusi.page.connected'|trans({'%account%': accountName ?: '-'}) }}
+        </div>
+        {% if error is not null %}
+            <div class="alert alert-danger">
+                <i class="ri-error-warning-line"></i>
+                {{ 'mautic.statusi.page.reports_error'|trans({'%error%': error}) }}
+            </div>
+        {% elseif reports is empty %}
+            {{ include('@MauticCore/Helper/noresults.html.twig', {
+                'header': 'mautic.statusi.page.empty.header',
+                'message': 'mautic.statusi.page.empty.message',
+            }) }}
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover" id="statusiReportsTable">
+                    <thead>
+                        <tr>
+                            <th>{{ 'mautic.statusi.page.report_name'|trans }}</th>
+                            <th class="visible-md visible-lg">{{ 'mautic.statusi.page.report_description'|trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                            <tr>
+                                <td>
+                                    <a href="{{ path('mautic_statusi_report', {'id': report.id}) }}" data-toggle="ajax">
+                                        {{ report.name }}
+                                    </a>
+                                </td>
+                                <td class="visible-md visible-lg">{{ report.description }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    {% else %}
+        {{ include('@MauticCore/Helper/noresults.html.twig', {
+            'header': 'mautic.statusi.page.not_connected.header',
+            'message': canManage ? 'mautic.statusi.page.not_connected.message' : 'mautic.statusi.page.not_connected.message_no_access',
+        }) }}
+        {% if canManage %}
+            <div class="text-center col-xs-12">
+                <a href="{{ path('mautic_plugin_index') }}" class="btn btn-primary" data-toggle="ajax">
+                    {{ 'mautic.statusi.page.go_to_plugins'|trans }}
+                </a>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

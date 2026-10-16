@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Statusi plugin tests. From the Mautic root:
+      php vendor/bin/phpunit -c plugins/MauticStatusiBundle/Tests/phpunit.xml.dist
+    (or a PHPUnit 11.5 phar instead of vendor/bin/phpunit)
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.5/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         colors="true"
+         cacheDirectory="../../../var/cache/statusi-phpunit"
+         failOnRisky="true"
+         failOnWarning="true">
+    <testsuites>
+        <testsuite name="unit">
+            <directory>Unit</directory>
+        </testsuite>
+        <testsuite name="integration">
+            <directory>Integration</directory>
+        </testsuite>
+        <testsuite name="e2e">
+            <directory>E2E</directory>
+        </testsuite>
+    </testsuites>
+</phpunit>

@@ -1,0 +1,135 @@
+{# @var integrationObject \MauticPlugin\MauticStatusiBundle\Integration\Support\ConfigSupport #}
+{% set connection = integrationObject.getConnectionDetails() %}
+{% set configUrl = path('mautic_integration_config', {'integration': integrationObject.getName()}) %}
+
+{{ form_start(form) }}
+
+<div id="statusi-connection" class="statusi-connection">
+    {% if connection %}
+        <div class="alert alert-success statusi-connection__status" role="status">
+            <div class="statusi-connection__title">
+                <strong>{{ 'mautic.statusi.config.connected.title'|trans }}</strong>
+            </div>
+            <p class="mb-0">{{ 'mautic.statusi.config.connected.description'|trans }}</p>
+        </div>
+
+        <dl class="statusi-connection__details">
+            <div>
+                <dt>{{ 'mautic.statusi.config.account'|trans }}</dt>
+                <dd>{{ connection.account_name ?: '#' ~ connection.account_id }}</dd>
+            </div>
+            {% if connection.user_email %}
+                <div>
+                    <dt>{{ 'mautic.statusi.config.connected_by'|trans }}</dt>
+                    <dd>{{ connection.user_email }}</dd>
+                </div>
+            {% endif %}
+            {% if connection.connected_at %}
+                <div>
+                    <dt>{{ 'mautic.statusi.config.connected_at'|trans }}</dt>
+                    <dd>{{ dateToFull(connection.connected_at) }}</dd>
+                </div>
+            {% endif %}
+        </dl>
+
+        {{ form_row(form.isPublished) }}
+
+        <div class="statusi-connection__actions">
+            <a href="{{ path('mautic_statusi_index') }}" class="btn btn-primary" data-toggle="ajax" onclick="mQuery('#IntegrationEditModal').modal('hide');">
+                <i class="ri-pulse-line"></i> {{ 'mautic.statusi.config.open'|trans }}
+            </a>
+            <button type="button" class="btn btn-ghost" onclick="return Mautic.statusiConnect(this);" data-url="{{ path('mautic_statusi_connect') }}">
+                <i class="ri-refresh-line"></i> {{ 'mautic.statusi.config.reconnect'|trans }}
+            </button>
+            <button type="button" class="btn btn-danger" onclick="return Mautic.statusiDisconnect(this);" data-url="{{ path('mautic_statusi_disconnect') }}" data-confirm="{{ 'mautic.statusi.config.disconnect.confirm'|trans|e('html_attr') }}">
+                <i class="ri-link-unlink-m"></i> {{ 'mautic.statusi.config.disconnect'|trans }}
+            </button>
+        </div>
+    {% else %}
+        <div class="statusi-connection__intro">
+            <img src="{{ getAssetUrl(integrationObject.getIcon()) }}" alt="Statusi" class="statusi-connection__logo">
+            <h4>{{ 'mautic.statusi.config.disconnected.title'|trans }}</h4>
+            <p class="text-secondary">{{ 'mautic.statusi.config.disconnected.description'|trans }}</p>
+            <button type="button" class="btn btn-primary btn-lg" onclick="return Mautic.statusiConnect(this);" data-url="{{ path('mautic_statusi_connect') }}">
+                <i class="ri-link-m"></i> {{ 'mautic.statusi.config.connect'|trans }}
+            </button>
+            <p class="text-secondary small mt-md mb-0">{{ 'mautic.statusi.config.popup_hint'|trans }}</p>
+        </div>
+        {# Not connected: keep the plugin disabled until a connection exists #}
+        <div class="hide">{{ form_row(form.isPublished) }}</div>
+    {% endif %}
+</div>
+
+{{ form_end(form) }}
+
+<style>
+    .statusi-connection { max-width: 640px; margin: 0 auto; }
+    .statusi-connection__title { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 15px; }
+    .statusi-connection__details { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+    .statusi-connection__details dt { font-weight: 600; font-size: 12px; text-transform: uppercase; opacity: .7; }
+    .statusi-connection__details dd { margin: 2px 0 0; word-break: break-word; }
+    .statusi-connection__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .statusi-connection__intro { text-align: center; padding: 24px 8px; }
+    .statusi-connection__logo { height: 48px; margin-bottom: 16px; }
+    @media (max-width: 480px) { .statusi-connection__actions .btn { flex: 1 1 100%; } }
+</style>
+
+<script>
+    (function () {
+        var modal = '#IntegrationEditModal';
+        var configUrl = {{ configUrl|json_encode|raw }};
+
+        // The sidebar is server-rendered, so reload the page once the modal closes after a change.
+        Mautic.statusiOnConnectionChanged = function () {
+            mQuery(modal).off('hidden.bs.modal.statusi').one('hidden.bs.modal.statusi', function () {
+                window.location.reload();
+            });
+            Mautic.loadAjaxModal(modal, configUrl);
+        };
+
+        Mautic.statusiConnect = function (button) {
+            var width = 520, height = 720;
+            var left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
+            var top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
+            var popup = window.open(
+                mQuery(button).data('url'),
+                'statusi_connect',
+                'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes'
+            );
+
+            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                alert(mauticLang.popupBlockerMessage);
+            } else {
+                popup.focus();
+            }
+
+            return false;
+        };
+
+        Mautic.statusiDisconnect = function (button) {
+            var $button = mQuery(button);
+            if (!window.confirm($button.data('confirm'))) {
+                return false;
+            }
+
+            $button.prop('disabled', true);
+            mQuery.ajax({
+                url: $button.data('url'),
+                type: 'POST',
+                dataType: 'json',
+                success: function (response) {
+                    if (response.flashes) {
+                        Mautic.setFlashes(response.flashes);
+                    }
+                    Mautic.statusiOnConnectionChanged();
+                },
+                error: function (request, textStatus, errorThrown) {
+                    $button.prop('disabled', false);
+                    Mautic.processAjaxError(request, textStatus, errorThrown);
+                }
+            });
+
+            return false;
+        };
+    })();
+</script>

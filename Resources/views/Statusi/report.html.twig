@@ -1,0 +1,43 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiReport{% endblock %}
+
+{% block headerTitle %}{{ report.name }}{% endblock %}
+
+{% block content %}
+<div class="pa-md">
+    <p>
+        <a href="{{ path('mautic_statusi_index') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.menu.all_reports'|trans }}
+        </a>
+    </p>
+    {% if report.description %}
+        <p class="text-secondary">{{ report.description }}</p>
+    {% endif %}
+
+    <div class="statusi-report-filters mb-md">
+        <strong>{{ 'mautic.statusi.report.filters'|trans }}:</strong>
+        {% for filter in filters %}
+            <span class="label label-default statusi-report-filter">{{ filter.label }}: {{ filter.value }}</span>
+        {% else %}
+            <span class="text-secondary">{{ 'mautic.statusi.report.no_filters'|trans }}</span>
+        {% endfor %}
+    </div>
+
+    {# Rendered by Assets/js/statusi-report.js (Mautic.statusiReportOnLoad) #}
+    <div id="statusiReport"
+         data-url="{{ path('mautic_statusi_report_data', {'id': report.id}) }}"
+         data-configuration="{{ report.configuration|e('html_attr') }}"
+         data-slug="{{ report.slug|default('')|e('html_attr') }}"
+         data-account-id="{{ accountId|default('') }}"
+         data-loading="{{ 'mautic.statusi.report.loading'|trans|e('html_attr') }}"
+         data-empty="{{ 'mautic.statusi.report.no_data'|trans|e('html_attr') }}"
+         data-error="{{ 'mautic.statusi.report.request_failed'|trans|e('html_attr') }}">
+        <ol class="breadcrumb statusi-report-breadcrumbs"></ol>
+        <div class="statusi-report-scroll">
+            <table class="table table-striped table-condensed statusi-report-table"></table>
+            <div class="statusi-report-status text-center text-secondary pa-sm"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

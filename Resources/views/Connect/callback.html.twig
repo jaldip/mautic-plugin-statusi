@@ -1,0 +1,43 @@
+{% extends '@MauticCore/Default/slim.html.twig' %}
+{% set includeEditor = false %}
+
+{# Override slim's _content directly: its default renders the full page header
+   (which requires variables like preHeader) and never outputs a "content" block. #}
+{% block _content %}
+<style>
+    #app-content { margin: 0; }
+    .statusi-callback { max-width: 440px; margin: 48px auto; padding: 0 16px; text-align: center; }
+    .statusi-callback i.statusi-callback__icon { font-size: 48px; display: block; margin-bottom: 8px; }
+</style>
+
+<div class="statusi-callback">
+    <i class="statusi-callback__icon {{ success ? 'ri-checkbox-circle-fill text-success' : 'ri-error-warning-fill text-danger' }}"></i>
+    <div class="alert alert-{{ success ? 'success' : 'danger' }}" role="alert">{{ message }}</div>
+
+    <button type="button" class="btn btn-primary" onclick="statusiFinish();">
+        {{ (success ? 'mautic.statusi.connect.continue' : 'mautic.integration.closewindow')|trans }}
+    </button>
+</div>
+
+<script>
+    function statusiFinish() {
+        var opener = window.opener;
+        if (opener && !opener.closed) {
+            try {
+                if (opener.Mautic && typeof opener.Mautic.statusiOnConnectionChanged === 'function') {
+                    opener.Mautic.statusiOnConnectionChanged();
+                } else {
+                    opener.location.reload();
+                }
+            } catch (e) {}
+            window.close();
+        } else {
+            window.location.href = {{ path('mautic_plugin_index')|json_encode|raw }};
+        }
+    }
+
+    {% if success %}
+    statusiFinish();
+    {% endif %}
+</script>
+{% endblock %}
