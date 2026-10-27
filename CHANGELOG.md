@@ -33,3 +33,4 @@ First public release.
 
 ### Requirements
 - Mautic 7, PHP 8.2+. Mautic must be reachable over https by Statusi for the daily sync.
+
