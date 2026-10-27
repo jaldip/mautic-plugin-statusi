@@ -1,0 +1,58 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrationForm{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.integrations.ongage.title'|trans }}{% endblock %}
+
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
+{% block content %}
+<div class="pa-md statusi-integration-form" data-request-failed="{{ 'mautic.statusi.integrations.request_failed'|trans|e('html_attr') }}">
+    <p>
+        <a href="{{ path('mautic_statusi_integration_new') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.integrations.select_platform'|trans }}
+        </a>
+    </p>
+
+    {# Submitted by Assets/js/statusi-integrations.js (AJAX POST; Mautic checks the CSRF token) #}
+    <form method="post" action="{{ path('mautic_statusi_integration_ongage', {'platform_id': platformId}) }}" data-statusi-form autocomplete="off">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="control-label required" for="statusiOngageApiKey">{{ 'mautic.statusi.integrations.ongage.api_key'|trans }}</label>
+                    <input type="password" class="form-control" id="statusiOngageApiKey" name="api_key" required autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label required" for="statusiOngageTask">{{ 'mautic.statusi.integrations.task'|trans }}</label>
+                    <select class="form-control" id="statusiOngageTask" name="task">
+                        <option value="activity">{{ 'mautic.statusi.integrations.task.contact_activity'|trans }}</option>
+                        <option value="manager">{{ 'mautic.statusi.integrations.task.contact_manager'|trans }}</option>
+                    </select>
+                    <span class="help-block">{{ 'mautic.statusi.integrations.ongage.task_help'|trans }}</span>
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="test_campaign" value="1">
+                        {{ 'mautic.statusi.integrations.ongage.test_campaign'|trans }}
+                    </label>
+                    <span class="help-block">{{ 'mautic.statusi.integrations.ongage.test_campaign_help'|trans }}</span>
+                </div>
+
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="include_new_list" value="1" checked>
+                        {{ 'mautic.statusi.integrations.ongage.include_new_list'|trans }}
+                    </label>
+                    <span class="help-block">{{ 'mautic.statusi.integrations.ongage.include_new_list_help'|trans }}</span>
+                </div>
+
+                <div class="alert alert-danger hide" data-statusi-form-error></div>
+                <button type="submit" class="btn btn-primary"><i class="ri-link-m"></i> {{ 'mautic.statusi.integrations.ongage.save'|trans }}</button>
+                <a href="{{ path('mautic_statusi_integrations') }}" class="btn btn-default" data-toggle="ajax">{{ 'mautic.statusi.integrations.cancel'|trans }}</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

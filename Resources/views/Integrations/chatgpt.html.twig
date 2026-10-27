@@ -1,0 +1,134 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrationForm{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.integrations.chatgpt.title'|trans }}{% endblock %}
+
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
+{% block content %}
+{% set formUrl = path('mautic_statusi_integration_chatgpt', integrationConfigId ? {'platform_id': platformId, 'integration_config_id': integrationConfigId} : {'platform_id': platformId}) %}
+<div class="pa-md statusi-integration-form" data-request-failed="{{ 'mautic.statusi.integrations.request_failed'|trans|e('html_attr') }}">
+    <p>
+        <a href="{{ path('mautic_statusi_integrations') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.integrations.back'|trans }}
+        </a>
+    </p>
+
+    {% if error is not null %}
+        <div class="alert alert-danger">
+            <i class="ri-error-warning-line"></i> {{ 'mautic.statusi.integrations.load_error'|trans({'%error%': error}) }}
+        </div>
+    {% endif %}
+
+    {# All forms are submitted by Assets/js/statusi-integrations.js (AJAX POST; Mautic checks the CSRF token) #}
+    {% if accounts is not empty %}
+        <form method="post" action="{{ formUrl }}" data-statusi-form>
+            <input type="hidden" name="action" value="update">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">
+                        {{ 'mautic.statusi.integrations.chatgpt.accounts'|trans }}
+                        {% if status %}<span class="label label-default">{{ status }}</span>{% endif %}
+                    </h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ 'mautic.statusi.integrations.chatgpt.ad_account'|trans }}</th>
+                                <th>{{ 'mautic.statusi.integrations.chatgpt.display_name'|trans }}</th>
+                                <th>{{ 'mautic.statusi.integrations.api_key'|trans }}</th>
+                                <th>{{ 'mautic.statusi.integrations.status'|trans }}</th>
+                                <th>{{ 'mautic.statusi.integrations.chatgpt.keep'|trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for account in accounts %}
+                                {% set key = account.ad_account_id %}
+                                <tr>
+                                    <td>
+                                        {{ account.ad_account_name|default(key) }}
+                                        <div class="text-secondary small">{{ key }}</div>
+                                        {% if account.last_error|default(null) is not empty and account.last_error is not iterable %}
+                                            <div class="text-danger small">{{ account.last_error }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td><input type="text" class="form-control input-sm" name="accounts[{{ key }}][display_name]" value="{{ account.display_name|default('') }}" maxlength="255"></td>
+                                    <td>****{{ account.api_key_last4|default('') }}</td>
+                                    <td>
+                                        <select class="form-control input-sm" name="accounts[{{ key }}][status]">
+                                            {% for option in ['Active', 'Inactive'] %}
+                                                <option value="{{ option }}" {{ (account.status|default('') == option or (option == 'Active' and account.status|default('') == 'Error')) ? 'selected' }}>
+                                                    {{ ('mautic.statusi.integrations.' ~ option|lower)|trans }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if account.status|default('') == 'Error' %}<div class="text-danger small">{{ 'mautic.statusi.integrations.chatgpt.error_status'|trans }}</div>{% endif %}
+                                    </td>
+                                    <td><input type="checkbox" name="accounts[{{ key }}][keep]" value="1" checked title="{{ 'mautic.statusi.integrations.chatgpt.keep_hint'|trans|e('html_attr') }}"></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel-body">
+                    <div class="alert alert-danger hide" data-statusi-form-error></div>
+                    <button type="submit" class="btn btn-primary">{{ 'mautic.statusi.integrations.save'|trans }}</button>
+                    <span class="text-secondary small ml-sm">{{ 'mautic.statusi.integrations.chatgpt.keep_hint'|trans }}</span>
+                </div>
+            </div>
+        </form>
+
+        <form method="post" action="{{ formUrl }}" data-statusi-form autocomplete="off">
+            <input type="hidden" name="action" value="replace_key">
+            <div class="panel panel-default">
+                <div class="panel-heading"><h3 class="panel-title">{{ 'mautic.statusi.integrations.chatgpt.replace_key'|trans }}</h3></div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-sm-5 form-group">
+                            <label class="control-label required">{{ 'mautic.statusi.integrations.chatgpt.ad_account'|trans }}</label>
+                            <select class="form-control" name="ad_account_id" required>
+                                {% for account in accounts %}
+                                    <option value="{{ account.ad_account_id }}">{{ account.display_name|default(account.ad_account_name|default(account.ad_account_id)) }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-sm-7 form-group">
+                            <label class="control-label required">{{ 'mautic.statusi.integrations.chatgpt.new_key'|trans }}</label>
+                            <input type="password" class="form-control" name="api_key" required autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="alert alert-danger hide" data-statusi-form-error></div>
+                    <button type="submit" class="btn btn-default">{{ 'mautic.statusi.integrations.chatgpt.replace_key'|trans }}</button>
+                </div>
+            </div>
+        </form>
+    {% endif %}
+
+    <form method="post" action="{{ formUrl }}" data-statusi-form autocomplete="off">
+        <input type="hidden" name="action" value="add">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{{ (accounts is empty ? 'mautic.statusi.integrations.chatgpt.connect' : 'mautic.statusi.integrations.chatgpt.add_account')|trans }}</h3>
+            </div>
+            <div class="panel-body">
+                <p class="text-secondary">{{ 'mautic.statusi.integrations.chatgpt.description'|trans }}</p>
+                <div class="row">
+                    <div class="col-sm-7 form-group">
+                        <label class="control-label required">{{ 'mautic.statusi.integrations.api_key'|trans }}</label>
+                        <input type="password" class="form-control" name="api_key" required autocomplete="new-password">
+                    </div>
+                    <div class="col-sm-5 form-group">
+                        <label class="control-label">{{ 'mautic.statusi.integrations.chatgpt.display_name'|trans }}</label>
+                        <input type="text" class="form-control" name="display_name" maxlength="255">
+                    </div>
+                </div>
+                <div class="alert alert-danger hide" data-statusi-form-error></div>
+                <button type="submit" class="btn btn-primary"><i class="ri-link-m"></i> {{ 'mautic.statusi.integrations.chatgpt.connect_button'|trans }}</button>
+                <a href="{{ path('mautic_statusi_integrations') }}" class="btn btn-default" data-toggle="ajax">{{ 'mautic.statusi.integrations.cancel'|trans }}</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

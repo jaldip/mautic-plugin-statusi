@@ -4,6 +4,8 @@
 
 {% block headerTitle %}{{ 'mautic.statusi.menu.index'|trans }}{% endblock %}
 
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
 {% block content %}
 <div class="pa-md">
     {% if accountName is not null %}

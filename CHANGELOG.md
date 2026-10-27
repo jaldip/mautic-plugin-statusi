@@ -2,6 +2,19 @@
 
 All notable changes to the Statusi plugin for Mautic. Versions follow [Semantic Versioning](https://semver.org/).
 
+## 1.2.0 – 2026-10-27
+
+### Integrations
+- **Statusi integrations** sidebar item (next to **Statusi reports**): the connected account's integrations (platform, task, status) with Activate / Deactivate.
+- **Create / Edit integrations** in Mautic for every Statusi platform: Ongage (incl. field mapping), Click Go,
+  ChatGPT Ads, and Google Ads / AdSense / Analytics, Meta Ads and Mailchimp through a provider sign-in that returns to Mautic.
+- The Mautic integration created by Connect is shown read-only.
+- Needs Statusi with the Mautic token allowed on the integration endpoints and the Mautic return of provider sign-ins.
+
+### Look
+- Statusi logo in the header of every Statusi page.
+- New square plugin icon (`Assets/img/statusi-plugin.png`) on the Plugins page and the Connect screen.
+
 ## 1.1.0 – 2026-10-15
 
 First public release.

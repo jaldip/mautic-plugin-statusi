@@ -1,0 +1,100 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrationForm{% endblock %}
+
+{% block headerTitle %}{{ ('mautic.statusi.integrations.accounts.title.' ~ kind)|trans }}{% endblock %}
+
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
+{% block content %}
+{% set formUrl = path('mautic_statusi_integration_accounts', {'kind': kind, 'platform_id': platformId, 'integration_config_id': integrationConfigId}) %}
+<div class="pa-md statusi-integration-form" data-request-failed="{{ 'mautic.statusi.integrations.request_failed'|trans|e('html_attr') }}">
+    <p>
+        <a href="{{ path('mautic_statusi_integrations') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.integrations.back'|trans }}
+        </a>
+    </p>
+
+    {% if error is not null %}
+        <div class="alert alert-danger">
+            <i class="ri-error-warning-line"></i> {{ 'mautic.statusi.integrations.load_error'|trans({'%error%': error}) }}
+        </div>
+    {% endif %}
+
+    {# Submitted by Assets/js/statusi-integrations.js (AJAX POST; Mautic checks the CSRF token) #}
+    <form method="post" action="{{ formUrl }}" data-statusi-form>
+        <div class="panel panel-default">
+            <div class="panel-body">
+                {% if email %}
+                    <p class="text-secondary">
+                        {{ 'mautic.statusi.integrations.accounts.signed_in_as'|trans({'%email%': email}) }}
+                        <input type="hidden" name="email" value="{{ email }}">
+                    </p>
+                {% endif %}
+
+                {% if kind == 'mailchimp' %}
+                    {% if serverPrefix %}<p class="text-secondary">{{ 'mautic.statusi.integrations.mailchimp.server'|trans({'%server%': serverPrefix}) }}</p>{% endif %}
+                    <div class="form-group" style="max-width: 320px;">
+                        <label class="control-label required" for="statusiTrackingDays">{{ 'mautic.statusi.integrations.mailchimp.days'|trans }}</label>
+                        <input type="number" class="form-control" id="statusiTrackingDays" name="campaign_history_tracking_days" min="1" max="90" required value="{{ trackingDays }}">
+                        <span class="help-block">{{ 'mautic.statusi.integrations.mailchimp.days_help'|trans }}</span>
+                    </div>
+
+                {% elseif accounts is empty %}
+                    <p>{{ 'mautic.statusi.integrations.accounts.none'|trans }}</p>
+
+                {% elseif kind == 'google_analytics' %}
+                    <p class="text-secondary">{{ 'mautic.statusi.integrations.accounts.help_properties'|trans }}</p>
+                    {% for account in accounts %}
+                        <input type="hidden" name="account_ids[]" value="{{ account.account_id }}">
+                        <h4 class="mt-md">{{ account.name|default(account.account_id) }} <small class="text-secondary">{{ account.account_id }}</small></h4>
+                        <table class="table table-condensed">
+                            <tbody>
+                                {% for property in account.properties|default([]) %}
+                                    <tr>
+                                        <td style="width: 40px;">
+                                            <input type="checkbox" name="properties[{{ account.account_id }}][]" value="{{ property.property_id }}" id="statusiProp{{ property.property_id }}" {{ property.status|default('') == 'Active' ? 'checked' }}>
+                                        </td>
+                                        <td>
+                                            <label for="statusiProp{{ property.property_id }}" class="mb-0">{{ property.property_name|default(property.property_id) }}</label>
+                                            <div class="text-secondary small">{{ 'mautic.statusi.integrations.accounts.property_id'|trans }}: {{ property.property_id }}</div>
+                                            {% if property.removed|default('') == 'false' %}<span class="label label-warning">{{ 'mautic.statusi.integrations.accounts.removed'|trans }}</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% endfor %}
+
+                {% else %}
+                    <p class="text-secondary">{{ 'mautic.statusi.integrations.accounts.help'|trans }}</p>
+                    <table class="table table-condensed">
+                        <tbody>
+                            {% for account in accounts %}
+                                <tr>
+                                    <td style="width: 40px;">
+                                        <input type="checkbox" name="accounts[]" value="{{ account.account_id }}" id="statusiAcc{{ loop.index }}" {{ account.status|default('') == 'Active' ? 'checked' }}>
+                                    </td>
+                                    <td>
+                                        <label for="statusiAcc{{ loop.index }}" class="mb-0">{{ account.name|default(account.account_id) }}</label>
+                                        {% if account.name|default('') != account.account_id %}<div class="text-secondary small">{{ account.account_id }}</div>{% endif %}
+                                        {% if account.removed|default('') == 'false' %}<span class="label label-warning">{{ 'mautic.statusi.integrations.accounts.removed'|trans }}</span>{% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+
+                <div class="alert alert-danger hide" data-statusi-form-error></div>
+                <button type="submit" class="btn btn-primary">{{ 'mautic.statusi.integrations.save'|trans }}</button>
+                <a href="{{ path('mautic_statusi_integrations') }}" class="btn btn-default" data-toggle="ajax">{{ 'mautic.statusi.integrations.cancel'|trans }}</a>
+                {# Full page navigation: signs in again (e.g. to give access to more accounts) #}
+                <a href="{{ path('mautic_statusi_integration_connect', {'kind': kind, 'platform_id': platformId}) }}" class="btn btn-link">
+                    <i class="ri-login-box-line"></i> {{ 'mautic.statusi.integrations.accounts.sign_in_again'|trans }}
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

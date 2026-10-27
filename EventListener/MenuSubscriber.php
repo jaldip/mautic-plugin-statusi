@@ -11,8 +11,8 @@ use MauticPlugin\MauticStatusiBundle\Service\ReportCatalog;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Shows the "Statusi" sidebar section only while Mautic is connected to Statusi,
- * with one sub item per report of the connected Statusi account.
+ * While Mautic is connected to Statusi, shows two sidebar items: "Statusi reports" (All reports plus one
+ * sub item per report of the connected Statusi account) and "Statusi integrations".
  */
 final readonly class MenuSubscriber implements EventSubscriberInterface
 {
@@ -74,10 +74,18 @@ final readonly class MenuSubscriber implements EventSubscriberInterface
         $event->addMenuItems([
             'priority' => 35,
             'items'    => [
-                'mautic.statusi.menu.index' => [
+                'mautic.statusi.menu.reports' => [
                     'id'        => 'mautic_statusi_root',
                     'iconClass' => 'ri-pulse-line',
+                    'priority'  => 35,
                     'children'  => $children,
+                ],
+                // Own item right below the reports, so integrations aren't mistaken for a report
+                'mautic.statusi.menu.integrations' => [
+                    'id'        => 'mautic_statusi_integrations',
+                    'route'     => 'mautic_statusi_integrations',
+                    'iconClass' => 'ri-plug-line',
+                    'priority'  => 34,
                 ],
             ],
         ]);

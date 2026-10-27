@@ -1,0 +1,51 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrations{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.integrations.select_platform'|trans }}{% endblock %}
+
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
+{% block content %}
+<div class="pa-md">
+    <p>
+        <a href="{{ path('mautic_statusi_integrations') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.integrations.back'|trans }}
+        </a>
+    </p>
+
+    {% if error is not null %}
+        <div class="alert alert-danger">
+            <i class="ri-error-warning-line"></i>
+            {{ 'mautic.statusi.integrations.load_error'|trans({'%error%': error}) }}
+        </div>
+    {% elseif platforms is empty %}
+        {{ include('@MauticCore/Helper/noresults.html.twig', {
+            'header': 'mautic.statusi.integrations.no_platforms',
+            'message': '',
+        }) }}
+    {% else %}
+        <div class="statusi-platforms">
+            {% for platform in platforms %}
+                {% set logo %}
+                    {% if platform.image_url %}
+                        <img src="{{ platform.image_url }}" alt="" class="statusi-platform__logo" loading="lazy" onerror="this.remove()">
+                    {% endif %}
+                    <span class="statusi-platform__name">{{ platform.name }}</span>
+                {% endset %}
+
+                {% if platform.kind in ['google_ads', 'google_adsense', 'google_analytics', 'meta_ads', 'mailchimp'] %}
+                    {# Full page navigation (no data-toggle="ajax"): the browser goes to the provider's sign-in and back to Mautic #}
+                    <a class="statusi-platform" href="{{ path('mautic_statusi_integration_connect', {'kind': platform.kind, 'platform_id': platform.id}) }}">
+                        {{ logo }}
+                        <span class="statusi-platform__note"><i class="ri-login-box-line"></i> {{ ('mautic.statusi.integrations.sign_in.' ~ platform.kind)|trans }}</span>
+                    </a>
+                {% else %}
+                    {% set routes = {'ongage': 'mautic_statusi_integration_ongage', 'clickgo': 'mautic_statusi_integration_clickgo', 'chatgpt': 'mautic_statusi_integration_chatgpt'} %}
+                    <a class="statusi-platform" data-toggle="ajax" href="{{ path(routes[platform.kind], {'platform_id': platform.id}) }}">{{ logo }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

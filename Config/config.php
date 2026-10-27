@@ -5,7 +5,7 @@ declare(strict_types=1);
 return [
     'name'        => 'Statusi',
     'description' => 'Connect Mautic to Statusi to bring Statusi reports into Mautic.',
-    'version'     => '1.1.0',
+    'version'     => '1.2.0',
     'author'      => 'Statusi',
 
     'routes' => [
@@ -24,6 +24,63 @@ return [
                 'controller'   => 'MauticPlugin\MauticStatusiBundle\Controller\StatusiController::reportDataAction',
                 'method'       => 'GET',
                 'requirements' => ['id' => '\d+'],
+            ],
+            // Statusi > Integrations (the connected Statusi account's integrations)
+            'mautic_statusi_integrations' => [
+                'path'       => '/statusi/integrations',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\IntegrationController::indexAction',
+                'method'     => 'GET',
+            ],
+            'mautic_statusi_integration_new' => [
+                'path'       => '/statusi/integrations/new',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\IntegrationController::newAction',
+                'method'     => 'GET',
+            ],
+            'mautic_statusi_integration_status' => [
+                'path'         => '/statusi/integrations/{id}/status',
+                'controller'   => 'MauticPlugin\MauticStatusiBundle\Controller\IntegrationController::statusAction',
+                'method'       => 'POST',
+                'requirements' => ['id' => '\d+'],
+            ],
+            // Google Ads / AdSense / Analytics, Meta Ads, Mailchimp: provider sign-in started from Mautic
+            'mautic_statusi_integration_connect' => [
+                'path'         => '/statusi/integrations/connect/{kind}',
+                'controller'   => 'MauticPlugin\MauticStatusiBundle\Controller\OAuthIntegrationController::connectAction',
+                'method'       => 'GET',
+                'requirements' => ['kind' => '[a-z_]+'],
+            ],
+            // Statusi sends the browser back here after the sign-in (path is fixed in statusi_backend models/mautic_oauth.py)
+            'mautic_statusi_integration_oauth_return' => [
+                'path'         => '/statusi/integrations/oauth/{key}',
+                'controller'   => 'MauticPlugin\MauticStatusiBundle\Controller\OAuthIntegrationController::returnAction',
+                'method'       => 'GET',
+                'requirements' => ['key' => '[a-z-]+'],
+            ],
+            'mautic_statusi_integration_accounts' => [
+                'path'         => '/statusi/integrations/accounts/{kind}',
+                'controller'   => 'MauticPlugin\MauticStatusiBundle\Controller\OAuthIntegrationController::accountsAction',
+                'requirements' => ['kind' => '[a-z_]+'],
+            ],
+            'mautic_statusi_integration_ongage' => [
+                'path'       => '/statusi/integrations/ongage',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\OngageIntegrationController::createAction',
+            ],
+            'mautic_statusi_integration_ongage_mapping' => [
+                'path'       => '/statusi/integrations/ongage/mapping',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\OngageIntegrationController::mappingAction',
+            ],
+            'mautic_statusi_integration_ongage_fields' => [
+                'path'       => '/statusi/integrations/ongage/fields',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\OngageIntegrationController::fieldsAction',
+                'method'     => 'GET',
+            ],
+            'mautic_statusi_integration_clickgo' => [
+                'path'       => '/statusi/integrations/clickgo',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\IntegrationController::clickgoAction',
+            ],
+            'mautic_statusi_integration_chatgpt' => [
+                'path'       => '/statusi/integrations/chatgpt',
+                'controller' => 'MauticPlugin\MauticStatusiBundle\Controller\IntegrationController::chatgptAction',
             ],
             'mautic_statusi_connect' => [
                 'path'       => '/statusi/connect',

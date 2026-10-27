@@ -28,6 +28,6 @@ class StatusiIntegration extends BasicIntegration implements BasicInterface
 
     public function getIcon(): string
     {
-        return 'plugins/MauticStatusiBundle/Assets/img/statusi.png';
+        return 'plugins/MauticStatusiBundle/Assets/img/statusi-plugin.png';
     }
 }

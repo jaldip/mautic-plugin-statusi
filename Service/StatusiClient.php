@@ -158,6 +158,309 @@ class StatusiClient
     }
 
     /**
+     * Integrations of the connected account (Statusi > Integrations), as listed by Statusi's
+     * /integration/get_lists: one row per integration_config (platform + task).
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws StatusiApiException
+     */
+    public function getIntegrations(): array
+    {
+        $connection = $this->requireConnection();
+
+        return array_values(array_filter(
+            $this->accountRequest('GET', '/integration/get_lists?'.http_build_query(['account_id' => $connection['account_id']])),
+            'is_array'
+        ));
+    }
+
+    /**
+     * Platforms an integration can be created for (id, name, image_url, path).
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws StatusiApiException
+     */
+    public function getPlatforms(): array
+    {
+        try {
+            $platforms = $this->accountRequest('GET', '/integration/platforms');
+        } catch (StatusiApiException $e) {
+            if (404 === $e->getCode()) {
+                return [];
+            }
+
+            throw $e;
+        }
+
+        return array_values(array_filter($platforms, 'is_array'));
+    }
+
+    /**
+     * @throws StatusiApiException
+     */
+    public function setIntegrationStatus(int $integrationConfigId, bool $active): void
+    {
+        $this->accountRequest('PUT', '/integration/integration-status', [
+            'integration_config_id' => $integrationConfigId,
+            'status'                => $active ? 1 : 0,
+        ]);
+    }
+
+    /**
+     * Creates a Click Go integration (Statusi verifies the API key with Click Go first).
+     *
+     * @throws StatusiApiException
+     */
+    public function saveClickgoIntegration(int $platformId, string $apiKey): void
+    {
+        $this->accountRequest('POST', '/integration/clickgo/save-credentials', ['platform_id' => $platformId, 'api_key' => $apiKey], self::QUERY_TIMEOUT);
+    }
+
+    /**
+     * Checks a ChatGPT Ads API key: returns ['ad_account' => [...], 'already_integrated' => bool].
+     *
+     * @return array<string, mixed>
+     *
+     * @throws StatusiApiException
+     */
+    public function validateChatgptAdsKey(int $platformId, string $apiKey): array
+    {
+        return $this->accountRequest('POST', '/integration/chatgpt-ads/validate', $this->withAccount(['platform_id' => $platformId, 'api_key' => $apiKey]), self::QUERY_TIMEOUT);
+    }
+
+    /**
+     * Connects one more ChatGPT Ads ad account (creates the integration on the first one).
+     *
+     * @throws StatusiApiException
+     */
+    public function saveChatgptAdsAccount(int $platformId, string $apiKey, ?string $displayName, ?int $integrationConfigId): void
+    {
+        $this->accountRequest('POST', '/integration/save-chatgpt-ads-config', $this->withAccount([
+            'platform_id'    => $platformId,
+            'api_key'        => $apiKey,
+            'display_name'   => $displayName ?: null,
+            'integration_id' => $integrationConfigId,
+        ]), self::QUERY_TIMEOUT);
+    }
+
+    /**
+     * @return array<string, mixed> integration_id, platform_id, status, accounts[]
+     *
+     * @throws StatusiApiException
+     */
+    public function getChatgptAdsIntegration(int $integrationConfigId): array
+    {
+        return $this->accountRequest('GET', '/integration/get-chatgpt-ads-config?'.http_build_query(['integration_id' => $integrationConfigId]));
+    }
+
+    /**
+     * Saves the final list of ad accounts (status / display name); accounts left out are removed.
+     *
+     * @param array<int, array{ad_account_id: string, status: string, display_name?: string|null}> $accounts
+     *
+     * @throws StatusiApiException
+     */
+    public function updateChatgptAdsAccounts(int $integrationConfigId, array $accounts): void
+    {
+        $this->accountRequest('PUT', '/integration/update-chatgpt-ads-config', ['integration_id' => $integrationConfigId, 'accounts' => $accounts]);
+    }
+
+    /**
+     * @throws StatusiApiException
+     */
+    public function replaceChatgptAdsKey(int $integrationConfigId, string $adAccountId, string $apiKey): void
+    {
+        $this->accountRequest('PUT', '/integration/chatgpt-ads/replace-key', [
+            'integration_id' => $integrationConfigId,
+            'ad_account_id'  => $adAccountId,
+            'api_key'        => $apiKey,
+        ], self::QUERY_TIMEOUT);
+    }
+
+    /**
+     * Starts a provider sign-in (Google, Meta, Mailchimp) for the connected account. Statusi returns the URL
+     * of the provider's consent page; after the sign-in Statusi sends the user back to this Mautic.
+     *
+     * @throws StatusiApiException
+     */
+    public function startOAuth(string $kind, int $platformId): string
+    {
+        $data = $this->accountRequest('POST', IntegrationList::OAUTH[$kind]['start'], $this->withAccount(['platform_id' => $platformId]));
+        $url  = (string) ($data['auth_url'] ?? '');
+        if (!str_starts_with($url, 'https://')) {
+            throw new StatusiApiException('Statusi did not return a sign-in URL.');
+        }
+
+        return $url;
+    }
+
+    /**
+     * Accounts / properties (or Mailchimp settings) of a signed-in integration.
+     *
+     * @return array<string, mixed>
+     *
+     * @throws StatusiApiException
+     */
+    public function getOAuthIntegration(string $kind, int $platformId, int $integrationConfigId): array
+    {
+        return $this->accountRequest('POST', IntegrationList::OAUTH[$kind]['accounts'], [
+            'platform_id'    => $platformId,
+            'integration_id' => $integrationConfigId,
+        ], self::QUERY_TIMEOUT);
+    }
+
+    /**
+     * Saves the selection of a signed-in integration: active account ids (Google Ads, AdSense, Meta), accounts with
+     * active property ids (Analytics) or, for Mailchimp, campaign_history_tracking_days.
+     *
+     * @param array<string, mixed> $values
+     *
+     * @throws StatusiApiException
+     */
+    public function saveOAuthIntegration(string $kind, int $platformId, int $integrationConfigId, array $values): void
+    {
+        $this->accountRequest('POST', IntegrationList::OAUTH[$kind]['save'], [
+            'platform_id'    => $platformId,
+            'integration_id' => $integrationConfigId,
+        ] + $values);
+    }
+
+    /**
+     * Creates an Ongage integration (Statusi checks the API key with Ongage) and returns its id.
+     *
+     * @throws StatusiApiException
+     */
+    public function createOngageIntegration(int $platformId, string $apiKey, bool $contactManager, bool $testCampaign, bool $includeNewList): int
+    {
+        $data = $this->accountRequest('POST', '/integration/ongage-integration', [
+            'platform_id'      => $platformId,
+            'api_key'          => $apiKey,
+            'contact_manager'  => $contactManager ? '1' : '0',
+            'test_campaign'    => $testCampaign,
+            'include_new_list' => $includeNewList,
+        ], self::QUERY_TIMEOUT);
+
+        return (int) ($data['integration_id'] ?? 0);
+    }
+
+    /**
+     * Sending lists of an Ongage integration (id, name, default, field_mapping_override, ...).
+     *
+     * @return array<int, array<string, mixed>>
+     *
+     * @throws StatusiApiException
+     */
+    public function getOngageLists(int $integrationConfigId): array
+    {
+        $data = $this->accountRequest('GET', '/integration/get-ongage-lists?'.http_build_query(['integration_config_id' => $integrationConfigId]), null, self::QUERY_TIMEOUT);
+
+        return array_values(array_filter(is_array($data['payload'] ?? null) ? $data['payload'] : [], 'is_array'));
+    }
+
+    /**
+     * Field titles of one Ongage list.
+     *
+     * @return string[]
+     *
+     * @throws StatusiApiException
+     */
+    public function getOngageFields(int $integrationConfigId, int $listId): array
+    {
+        $data = $this->accountRequest('GET', '/integration/get-ongage-fields?'.http_build_query(['integration_config_id' => $integrationConfigId, 'list_id' => $listId]), null, self::QUERY_TIMEOUT);
+
+        $titles = [];
+        foreach (is_array($data['payload'] ?? null) ? $data['payload'] : [] as $field) {
+            if (is_array($field) && isset($field['title']) && '' !== (string) $field['title']) {
+                $titles[] = (string) $field['title'];
+            }
+        }
+
+        return $titles;
+    }
+
+    /**
+     * Statusi fields that can be mapped ("table.column") and the fixed mappings Statusi always applies.
+     *
+     * @return array{fields: string[], fixed: array<string, string>}
+     *
+     * @throws StatusiApiException
+     */
+    public function getFieldMappingDefinition(): array
+    {
+        $fields = $this->accountRequest('GET', '/integration/get_default_fields');
+        $fixed  = $this->accountRequest('GET', '/integration/get-fixed-field-mappings');
+
+        return [
+            'fields' => array_values(array_filter(is_array($fields['fields'] ?? null) ? $fields['fields'] : [], 'is_string')),
+            'fixed'  => array_filter($fixed, 'is_string'),
+        ];
+    }
+
+    /**
+     * Saves the field mapping of an Ongage Contact Manager integration (default mapping + per-list mappings).
+     *
+     * @param array<string, mixed>  $fieldsMapping  {"field_mapping": {...}, "<list id>": {"field_mapping": {...}}}
+     * @param array<string, string> $listNames
+     * @param string[]              $deletedListIds
+     *
+     * @throws StatusiApiException
+     */
+    public function saveOngageFieldMapping(int $integrationConfigId, int $platformId, array $fieldsMapping, array $listNames, array $deletedListIds): void
+    {
+        $this->accountRequest('PUT', '/integration/update_field_mapping', [[
+            'id'               => $integrationConfigId,
+            'status'           => 1,
+            'platform_id'      => $platformId,
+            'deleted_list_ids' => array_values($deletedListIds),
+            'list_names'       => $listNames ?: new \stdClass(),
+            'listdata'         => ['fields_mapping' => $fieldsMapping],
+        ]], self::QUERY_TIMEOUT);
+    }
+
+    /**
+     * @return array{api_token: string, account_id: int}
+     *
+     * @throws StatusiApiException
+     */
+    private function requireConnection(): array
+    {
+        $connection = $this->connectionManager->getConnection();
+        if (null === $connection) {
+            throw new StatusiApiException('Mautic is not connected to Statusi.');
+        }
+
+        return $connection;
+    }
+
+    /**
+     * @param array<string, mixed> $json
+     *
+     * @return array<string, mixed>
+     */
+    private function withAccount(array $json): array
+    {
+        return $json + ['account_id' => $this->requireConnection()['account_id']];
+    }
+
+    /**
+     * Request for the connected account: Statusi checks the account in the Account-Id header against the token.
+     *
+     * @param array<string, mixed>|null $json
+     *
+     * @return array<string, mixed>
+     *
+     * @throws StatusiApiException
+     */
+    private function accountRequest(string $method, string $path, ?array $json = null, int $timeout = self::TIMEOUT): array
+    {
+        $connection = $this->requireConnection();
+
+        return $this->request($method, $path, $connection['api_token'], $json, $timeout, accountId: $connection['account_id']);
+    }
+
+    /**
      * @param array<string, mixed>|null $json
      * @param string|null               $content receives the raw response body
      *
@@ -167,7 +470,7 @@ class StatusiClient
      *
      * @throws StatusiApiException
      */
-    private function request(string $method, string $path, ?string $apiToken = null, ?array $json = null, int $timeout = self::TIMEOUT, ?string &$content = null): array
+    private function request(string $method, string $path, ?string $apiToken = null, ?array $json = null, int $timeout = self::TIMEOUT, ?string &$content = null, ?int $accountId = null): array
     {
         $headers = [
             'Accept'           => 'application/json',
@@ -175,6 +478,9 @@ class StatusiClient
         ];
         if ($apiToken) {
             $headers['Authorization'] = 'Bearer '.$apiToken;
+        }
+        if (null !== $accountId) {
+            $headers['Account-Id'] = (string) $accountId;
         }
 
         $options = ['headers' => $headers, 'timeout' => $timeout, 'max_duration' => $timeout];
@@ -192,9 +498,28 @@ class StatusiClient
         }
 
         if ($statusCode >= 400 || !empty($body['error'])) {
-            throw new StatusiApiException((string) ($body['message'] ?? 'Statusi returned an error.'), $statusCode);
+            throw new StatusiApiException($this->errorMessage($body), $statusCode);
         }
 
         return is_array($body['data'] ?? null) ? $body['data'] : [];
+    }
+
+    /**
+     * Statusi's message, plus the field errors of a validation error ({"api_key": ["..."]}).
+     *
+     * @param array<string, mixed> $body
+     */
+    private function errorMessage(array $body): string
+    {
+        $message = (string) ($body['message'] ?? 'Statusi returned an error.');
+
+        $details = [];
+        foreach (is_array($body['data'] ?? null) ? $body['data'] : [] as $field => $errors) {
+            if (is_string($field) && is_array($errors) && array_is_list($errors)) {
+                $details[] = $field.': '.implode(' ', array_filter($errors, 'is_string'));
+            }
+        }
+
+        return $details ? $message.' ('.implode('; ', $details).')' : $message;
     }
 }

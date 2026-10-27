@@ -1,0 +1,129 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrationForm{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.integrations.ongage.mapping_title'|trans }}{% endblock %}
+
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
+{% macro mappingTable(prefix, fields, titles, values) %}
+    <table class="table table-condensed statusi-mapping-table">
+        <thead>
+            <tr>
+                <th>{{ 'mautic.statusi.integrations.ongage.statusi_field'|trans }}</th>
+                <th>{{ 'mautic.statusi.integrations.ongage.ongage_field'|trans }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for field in fields %}
+                {% set value = values[field.key]|default('None') %}
+                <tr>
+                    <td>{{ field.label }}</td>
+                    <td>
+                        <select class="form-control input-sm" name="mapping[{{ prefix }}][{{ field.key }}]">
+                            <option value="None">{{ 'mautic.statusi.integrations.ongage.none'|trans }}</option>
+                            {% for title in titles %}
+                                <option value="{{ title }}" {{ title == value ? 'selected' }}>{{ title }}</option>
+                            {% endfor %}
+                            {% if value != 'None' and value not in titles %}
+                                <option value="{{ value }}" selected>{{ value }}</option>
+                            {% endif %}
+                        </select>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endmacro %}
+
+{% block content %}
+{% import _self as ui %}
+<div class="pa-md statusi-integration-form" data-request-failed="{{ 'mautic.statusi.integrations.request_failed'|trans|e('html_attr') }}">
+    <p>
+        <a href="{{ path('mautic_statusi_integrations') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.integrations.back'|trans }}
+        </a>
+    </p>
+
+    {% if error is not null %}
+        <div class="alert alert-danger">
+            <i class="ri-error-warning-line"></i> {{ 'mautic.statusi.integrations.load_error'|trans({'%error%': error}) }}
+        </div>
+    {% else %}
+        {# Submitted by Assets/js/statusi-integrations.js; lists ticked later get their table from the "fields" URL #}
+        <form method="post" action="{{ path('mautic_statusi_integration_ongage_mapping', {'integration_config_id': integrationConfigId, 'platform_id': platformId}) }}"
+              data-statusi-form id="statusiOngageMapping"
+              data-fields-url="{{ path('mautic_statusi_integration_ongage_fields', {'integration_config_id': integrationConfigId}) }}"
+              data-fields="{{ mapping.fields|json_encode|e('html_attr') }}"
+              data-defaults="{{ mapping.default.values|json_encode|e('html_attr') }}"
+              data-none-label="{{ 'mautic.statusi.integrations.ongage.none'|trans|e('html_attr') }}"
+              data-statusi-label="{{ 'mautic.statusi.integrations.ongage.statusi_field'|trans|e('html_attr') }}"
+              data-ongage-label="{{ 'mautic.statusi.integrations.ongage.ongage_field'|trans|e('html_attr') }}"
+              data-loading="{{ 'mautic.statusi.report.loading'|trans|e('html_attr') }}">
+            <input type="hidden" name="previous_lists" value="{{ mapping.previous }}">
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{ 'mautic.statusi.integrations.ongage.default_mapping'|trans }}</h3>
+                </div>
+                <div class="panel-body">
+                    <p class="text-secondary">
+                        {% if mapping.default.list %}
+                            {{ 'mautic.statusi.integrations.ongage.default_help'|trans({'%list%': mapping.default.list.name}) }}
+                        {% else %}
+                            {{ 'mautic.statusi.integrations.ongage.no_lists'|trans }}
+                        {% endif %}
+                    </p>
+                    {{ ui.mappingTable('default', mapping.fields, mapping.default.titles, mapping.default.values) }}
+
+                    <details class="mt-sm">
+                        <summary class="text-secondary">{{ 'mautic.statusi.integrations.ongage.fixed_fields'|trans }}</summary>
+                        <table class="table table-condensed mt-sm">
+                            <tbody>
+                                {% for field in mapping.fixed %}
+                                    <tr><td>{{ field.label }}</td><td class="text-secondary">{{ field.value }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </details>
+                </div>
+            </div>
+
+            {% if mapping.lists is not empty %}
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">{{ 'mautic.statusi.integrations.ongage.lists'|trans }}</h3>
+                    </div>
+                    <div class="panel-body">
+                        <p class="text-secondary">{{ 'mautic.statusi.integrations.ongage.lists_help'|trans }}</p>
+                        {% for list in mapping.lists %}
+                            <div class="statusi-mapping-list">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="lists[]" value="{{ list.id }}" data-statusi-list {{ list.selected ? 'checked' }}>
+                                        <strong>{{ list.name }}</strong> <span class="text-secondary small">#{{ list.id }}</span>
+                                        {% if mapping.default.list and mapping.default.list.id == list.id %}
+                                            <span class="label label-default">{{ 'mautic.statusi.integrations.ongage.default_list'|trans }}</span>
+                                        {% endif %}
+                                    </label>
+                                    <input type="hidden" name="list_names[{{ list.id }}]" value="{{ list.name }}">
+                                </div>
+                                <div class="statusi-mapping-list__table" data-list-table="{{ list.id }}">
+                                    {% if mapping.selected[list.id] is defined %}
+                                        {% set listMapping = mapping.selected[list.id] %}
+                                        {{ ui.mappingTable(list.id, mapping.fields, listMapping.titles, listMapping.values) }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="alert alert-danger hide" data-statusi-form-error></div>
+            <button type="submit" class="btn btn-primary">{{ 'mautic.statusi.integrations.save'|trans }}</button>
+            <a href="{{ path('mautic_statusi_integrations') }}" class="btn btn-default" data-toggle="ajax">{{ 'mautic.statusi.integrations.cancel'|trans }}</a>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

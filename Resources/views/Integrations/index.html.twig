@@ -1,0 +1,99 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrations{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.integrations.title'|trans }}{% endblock %}
+
+{% block actions %}
+    <div class="statusi-header-actions">
+        {{ include('@MauticStatusi/Statusi/_brand.html.twig') }}
+        <a href="{{ path('mautic_statusi_integration_new') }}" class="btn btn-primary" data-toggle="ajax">
+            <i class="ri-add-line"></i> {{ 'mautic.statusi.integrations.create'|trans }}
+        </a>
+    </div>
+{% endblock %}
+
+{% block content %}
+{# Behaviour: Assets/js/statusi-integrations.js (Mautic.statusiIntegrationsOnLoad) #}
+<div class="pa-md" id="statusiIntegrations"
+     data-request-failed="{{ 'mautic.statusi.integrations.request_failed'|trans|e('html_attr') }}"
+     data-refresh-url="{{ path('mautic_statusi_integrations') }}">
+    <p class="text-secondary">
+        {{ 'mautic.statusi.integrations.description'|trans({'%account%': accountName ?: '-'}) }}
+    </p>
+
+    {% if error is not null %}
+        <div class="alert alert-danger">
+            <i class="ri-error-warning-line"></i>
+            {{ 'mautic.statusi.integrations.load_error'|trans({'%error%': error}) }}
+        </div>
+    {% elseif integrations is empty %}
+        {{ include('@MauticCore/Helper/noresults.html.twig', {
+            'header': 'mautic.statusi.integrations.empty.header',
+            'message': 'mautic.statusi.integrations.empty.message',
+        }) }}
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-hover statusi-integrations-table">
+                <thead>
+                    <tr>
+                        <th class="col-xs-1">{{ 'mautic.statusi.integrations.index'|trans }}</th>
+                        <th>{{ 'mautic.statusi.integrations.platform'|trans }}</th>
+                        <th>{{ 'mautic.statusi.integrations.task'|trans }}</th>
+                        <th>{{ 'mautic.statusi.integrations.status'|trans }}</th>
+                        <th class="text-right">{{ 'mautic.statusi.integrations.actions'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for integration in integrations %}
+                        <tr data-integration-id="{{ integration.id }}">
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                {{ integration.platform }}
+                                {% if integration.kind == 'mautic' %}
+                                    <i class="ri-information-line text-secondary" data-toggle="tooltip" title="{{ 'mautic.statusi.integrations.mautic_readonly'|trans|e('html_attr') }}"></i>
+                                {% endif %}
+                            </td>
+                            <td>{{ ('mautic.statusi.integrations.task.' ~ integration.task)|trans }}</td>
+                            <td>
+                                <span class="label {{ integration.active ? 'label-success' : 'label-default' }}">
+                                    {{ (integration.active ? 'mautic.statusi.integrations.active' : 'mautic.statusi.integrations.inactive')|trans }}
+                                </span>
+                            </td>
+                            <td class="text-right statusi-integration-actions">
+                                {% if integration.can_toggle %}
+                                    <button type="button" class="btn btn-default btn-sm"
+                                            data-statusi-toggle
+                                            data-url="{{ path('mautic_statusi_integration_status', {'id': integration.id}) }}"
+                                            data-active="{{ integration.active ? 0 : 1 }}">
+                                        {{ (integration.active ? 'mautic.statusi.integrations.deactivate' : 'mautic.statusi.integrations.activate')|trans }}
+                                    </button>
+                                {% endif %}
+
+                                {% if integration.edit is not null %}
+                                    {% if integration.kind == 'chatgpt' %}
+                                        {% set editUrl = path('mautic_statusi_integration_chatgpt', {'integration_config_id': integration.id, 'platform_id': integration.platform_id}) %}
+                                    {% elseif integration.kind == 'ongage' %}
+                                        {% set editUrl = path('mautic_statusi_integration_ongage_mapping', {'integration_config_id': integration.id, 'platform_id': integration.platform_id}) %}
+                                    {% else %}
+                                        {% set editUrl = path('mautic_statusi_integration_accounts', {'kind': integration.kind, 'integration_config_id': integration.id, 'platform_id': integration.platform_id}) %}
+                                    {% endif %}
+                                    {% if integration.edit.disabled %}
+                                        <button type="button" class="btn btn-default btn-sm" disabled title="{{ 'mautic.statusi.integrations.edit_inactive'|trans|e('html_attr') }}">
+                                            <i class="ri-edit-line"></i> {{ 'mautic.statusi.integrations.edit'|trans }}
+                                        </button>
+                                    {% else %}
+                                        <a class="btn btn-default btn-sm" data-toggle="ajax" href="{{ editUrl }}">
+                                            <i class="ri-edit-line"></i> {{ 'mautic.statusi.integrations.edit'|trans }}
+                                        </a>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

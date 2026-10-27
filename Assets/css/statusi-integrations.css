@@ -1,0 +1,89 @@
+/* Statusi logo in the page header (Resources/views/Statusi/_brand.html.twig) */
+.statusi-brand {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 12px;
+    vertical-align: middle;
+}
+
+.statusi-brand__logo {
+    height: 56px;
+    width: auto;
+}
+
+/* Logo with the page's buttons below it (Statusi integrations) */
+.statusi-header-actions {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.statusi-header-actions .statusi-brand {
+    margin-left: 0;
+}
+
+@media (max-width: 768px) {
+    .statusi-brand__logo {
+        height: 40px;
+    }
+}
+
+/* Statusi > Integrations > Create integration: platform tiles */
+.statusi-platforms {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.statusi-platform {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 140px;
+    padding: 16px;
+    border: 1px solid var(--border-subtle, #ddd);
+    border-radius: var(--border-radius-md, 4px);
+    background: var(--layer-01, #fff);
+    color: inherit;
+    text-align: center;
+    cursor: pointer;
+    width: 100%;
+}
+
+.statusi-platform:hover,
+.statusi-platform:focus {
+    border-color: var(--border-interactive, #4e5e9e);
+    text-decoration: none;
+    color: inherit;
+}
+
+.statusi-platform.is-disabled {
+    cursor: default;
+    opacity: .6;
+}
+
+.statusi-platform__logo {
+    max-height: 48px;
+    max-width: 120px;
+}
+
+.statusi-platform__name {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.statusi-platform__note {
+    font-size: 12px;
+    opacity: .7;
+}
+
+.statusi-integration-actions .btn + .btn {
+    margin-left: 4px;
+}
+
+.statusi-integration-form {
+    max-width: 900px;
+}

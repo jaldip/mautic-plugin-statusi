@@ -1,0 +1,35 @@
+{% extends '@MauticCore/Default/content.html.twig' %}
+
+{% block mauticContent %}statusiIntegrationForm{% endblock %}
+
+{% block headerTitle %}{{ 'mautic.statusi.integrations.clickgo.title'|trans }}{% endblock %}
+
+{% block actions %}{{ include('@MauticStatusi/Statusi/_brand.html.twig') }}{% endblock %}
+
+{% block content %}
+<div class="pa-md statusi-integration-form" data-request-failed="{{ 'mautic.statusi.integrations.request_failed'|trans|e('html_attr') }}">
+    <p>
+        <a href="{{ path('mautic_statusi_integration_new') }}" data-toggle="ajax">
+            <i class="ri-arrow-left-line"></i> {{ 'mautic.statusi.integrations.select_platform'|trans }}
+        </a>
+    </p>
+
+    {# Submitted by Assets/js/statusi-integrations.js (AJAX POST; Mautic checks the CSRF token) #}
+    <form method="post" action="{{ path('mautic_statusi_integration_clickgo', {'platform_id': platformId}) }}" data-statusi-form autocomplete="off">
+        <div class="panel panel-default">
+            <div class="panel-body">
+                <p class="text-secondary">{{ 'mautic.statusi.integrations.clickgo.description'|trans }}</p>
+                <div class="form-group">
+                    <label class="control-label required" for="statusiClickgoApiKey">{{ 'mautic.statusi.integrations.api_key'|trans }}</label>
+                    <input type="password" class="form-control" id="statusiClickgoApiKey" name="api_key" required autocomplete="new-password">
+                </div>
+                <div class="alert alert-danger hide" data-statusi-form-error></div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="ri-link-m"></i> {{ 'mautic.statusi.integrations.clickgo.save'|trans }}
+                </button>
+                <a href="{{ path('mautic_statusi_integrations') }}" class="btn btn-default" data-toggle="ajax">{{ 'mautic.statusi.integrations.cancel'|trans }}</a>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

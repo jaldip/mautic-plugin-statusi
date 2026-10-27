@@ -64,16 +64,37 @@ password only). After choosing an account the popup closes, the plugin shows
 
 ## Reports
 
-The **Statusi** sidebar section lists **All reports** plus one item per report of the connected
+The **Statusi reports** sidebar section lists **All reports** plus one item per report of the connected
 account (from `/report/get-reports`). The list is cached for 5 minutes (a failed fetch for 1 minute,
-with a 5 second timeout), so Mautic pages do not call Statusi on every request.
+with a 5 second timeout), so Mautic pages do not call Statusi on every request. Every Statusi page
+shows the Statusi logo in its header.
+
+## Integrations
+
+The **Statusi integrations** sidebar item (separate from **Statusi reports**) lists the connected account's integrations like Statusi's own Integrations
+page (platform, task, status) and lets every Mautic user who can see the Statusi reports:
+
+- **Activate / Deactivate** an integration (Statusi's DAGs only pull active ones).
+- **Create integration** for any Statusi platform, and **Edit** existing ones, all inside Mautic:
+  - **Ongage**: API key and task. Contact Manager integrations get the field mapping page (default mapping from
+    the default Ongage list, plus list specific mappings).
+  - **Click Go** and **ChatGPT Ads**: API key forms. ChatGPT Ads can manage several ad accounts (status,
+    display name, remove, replace key).
+  - **Google Ads / AdSense / Analytics, Meta Ads, Mailchimp**: "Sign in with Google / Facebook / Mailchimp"
+    starts the provider sign-in from Mautic. The provider returns to Statusi, which stores the tokens and sends
+    the browser back to Mautic (`/s/statusi/integrations/oauth/<platform>`), where you pick the accounts or
+    properties (Mailchimp: the tracking days).
+- The **Mautic** integration created by Connect is shown read-only; it is managed with Connect / Disconnect.
 
 ## Security
 
 - Authorization code + PKCE (S256) + `state`; the code is exchanged server-to-server, so the
   API token never passes through the browser.
 - Every call sends `X-Statusi-Client: mautic`. Statusi only accepts the token with that flag,
-  and only on `/report/dynamic_query` and `/report/get-reports`.
+  and only on the report endpoints (`/report/dynamic_query`, `/report/get-reports`) and the integration
+  endpoints Statusi > Integrations uses (`/integration/get_lists`, `/integration/platforms`,
+  `/integration/integration-status`, Click Go and ChatGPT Ads). Each request names the account in the
+  `Account-Id` header and Statusi refuses any other account than the token's.
 - The token is locked to one Statusi account. It stops working when it is revoked, or when the
   user who connected it leaves the account.
 - Mautic stores the token encrypted in the integration's API keys. Statusi stores only a
